@@ -1,15 +1,20 @@
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Header from '../components/Header';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import ReactToPrint from 'react-to-print'; // Import ReactToPrint
+import PrintableContent from '../components/PrintableComponent'
 
 
 export default function Mobile() {
   const [phone, setPhone] = useState('');
+  const [verificationResults, setVerificationResults] = useState(null); // Initialize with null
   const [result, setResult] = useState(null);
   const [profilePictureURL, setProfilePictureURL] = useState('');
   const [email, setEmail] = useState('');
+  const printableComponentRef = useRef(); // Create a ref for the printable component
+
 
 
 
@@ -18,14 +23,48 @@ export default function Mobile() {
 
     try {
       const response = await axios.post(`/api/mobile?phone=${phone}`);
-      setResult(response.data);
+      handleVerify();
+      setTimeout(setResult(response.data), 3000
+      )
+
     } catch (error) {
       console.error(error);
       setResult({ error: 'An error occurred while fetching data from the API' });
     }
   };
 
+  console.log(phone);
+
+
+  function generateApiEndpoints(phone) {
+    const phoneProviders = ['paytm', 'axl', 'ybl', 'okaxis', 'okicici'];
+    return phoneProviders.map(provider => `${phone}@${provider}`);
+  }
+
+  const handleVerify = async () => {
+    try {
+      const apiEndpoints = generateApiEndpoints(phone);
+      const verificationResults = await Promise.all(
+        apiEndpoints.map(async endpoint => {
+          try {
+            const response = await axios.post(`/api/upifind?vpa=${endpoint}`);
+            return response.data;
+          } catch (error) {
+            console.error(error);
+            return { error: `Error with ${endpoint}` };
+          }
+        })
+      );
+      console.log(verificationResults);
+      setVerificationResults(verificationResults);
+      // Do something with the verification results
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   console.log(result);
+
 
   useEffect(() => {
     // Assuming you have the 'result' containing the user data, and it also has 'result.data[0].internetAddresses'
@@ -41,21 +80,21 @@ export default function Mobile() {
     }
   }, [result]);
 
-  
+
 
   return (
     <div className="justify-center min-w-screen  ">
       <div className='flex  justify-evenly space-x-16 md:space-x-44  '>
-      <Link href='/SocialAnalyzer'>
-      <div
-        className=" py-2 h-10 mt-12 bg-white px-2 rounded-2xl text-black"
-      
-      >
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3.0} stroke="currentColor" className="w-6 h-6">
-  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-</svg>
-      </div>
-      </Link>
+        <Link href='/SocialAnalyzer'>
+          <div
+            className=" py-2 h-10 mt-12 bg-white px-2 rounded-2xl text-black"
+
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3.0} stroke="currentColor" className="w-6 h-6">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+          </div>
+        </Link>
         <Header />
         <div className=''>
           <Link href='/'>
@@ -79,59 +118,44 @@ export default function Mobile() {
               className='bg-white  text-black font-mono border-4 border-gray-400 rounded-xl px-2 py-2 '
             />
             <button className='bg-white -400  font-bold font-mono hover:bg-green-200 -700 text-black   px-4 rounded-xl ' type="submit">Submit</button>
+           
           </form>
 
         </motion.div>
+
+  
+
+        {/* {verificationResults?.map((result, index) => (
+          <div className='text-white' key={index}>
+            {result.result && result.result.account_exists === 'YES' && (
+              <div>
+                <p>VPA: {result.result.vpa}</p>
+                <p>Name at Bank: {result.result.name_at_bank}</p>
+              </div>
+            )}
+          </div>
+        ))} */}
+
         {/* TO be exported as a pdf */}
         {result && result.status && (
-          <div className='printable-content bg-black mt-4 md:mt-0    rounded-xl border-2 border-white text-white font-mono    '>
-            <button className=' bg-red-400  font-bold font-mono hover:bg-green-700 text-white  ml-52 md:ml-[60%]  px-6 rounded-xl ' >
-              Export as PDF
-            </button>
-            <div className='flex'>
-              <Link href='/'>
-                <img src='/logo.png' className='garuda md:h-12  h-12  flex' />
-              </Link>
-              <h1 className='mx-2 headd pt-2 '>Garuda Analysis Report for {result.data[0].phones[0].e164Format}</h1>
+          
+          <div className='flex space-x-4'>
+          <div className=' justify-center mt-4'>
+              <ReactToPrint
+                trigger={() => <button className='bg-red-400 mt-16 font-bold font-mono py-2 hover:bg-green-700 text-white px-6 rounded-xl'>Export as PDF</button>}
+                content={() => printableComponentRef.current} // Use the current property of the ref
+              />
             </div>
-            {/* Display name */}
-            <p className='text-center namee pt-2 font-bold md:text-2xl font-mono'>{result.data[0].name}</p>
-
-            {/* Display image if available */}
-            {result.data[0].image && (
-              <img
-                src={result.data[0].image}
-                className='profile md:w-44 w-24 ml-32 mt-4 rounded-xl border-2 border-white'
-                alt="User's profile"
-              />
-            )}
-            {/* {profilePictureURL && (
-              <img
-                src={profilePictureURL}
-                className='profile md:w-44 w-24 ml-32 mt-4 rounded-xl border-2 border-white'
-                alt="User's profile"
-              />
-            )} */}
-            {/* Display internetAddresses */}
-
-            <ul className='mt-4 inter  text-sm md:text-lg mx-4'>
-              {result.data[0].internetAddresses.map((address) => (
-                <li className='font-bold' key={address.id}><span className='uppercase'>{address.service}</span>: {address.id}</li>
-              ))}
-            </ul>
-
-            {/* Display carrier */}
-            <p className=' carrier font-bold mx-4'><span className='underline  font-bold'>Carrier</span>: {result.data[0].phones[0].carrier}</p>
-            <p className='phoneno font-bold mx-4' ><span className='underline  font-bold'>Phone No:</span>: {result.data[0].phones[0].e164Format}</p>
-            <ul className='address  mx-4'>
-              {result.data[0].addresses.map((addresses) => (
-                <li className='font-bold' key={addresses.id}><span className=' underline  font-bold'>Address</span>: {addresses.address}</li>
-              ))}
-            </ul>
-
+            <PrintableContent result={result} verificationResults={verificationResults} ref={printableComponentRef} />
+           
           </div>
         )}
       </div>
+
+      <div>
+
+      </div>
+
       {/* Updated Export as PDF button */}
       {/* Print button */}
 

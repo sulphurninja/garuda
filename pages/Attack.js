@@ -17,6 +17,7 @@ export default function Attack() {
           setLocationAccess(true);
           setLatitude(latitude);
           setLongitude(longitude);
+          saveSuspectCoordinates(latitude, longitude); // Save the coordinates here
         },
         error => {
           console.error('Error getting location:', error);
@@ -27,15 +28,31 @@ export default function Attack() {
     }
   }, []);
 
+  const saveSuspectCoordinates = async (lat, long) => {
+    try {
+      await fetch('/api/save-suspect', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ latitude: lat, longitude: long }),
+      });
+      console.log('Suspect coordinates saved successfully');
+    } catch (error) {
+      console.error('Error saving suspect coordinates:', error);
+    }
+  };
+
+
   return (
     <>
-      <div className='ml-[25%]'>
+      <div className='ml-[25%] text-white'>
         <Hero />
-        {locationAccess ? (
+        {/* {locationAccess ? (
           <Coordinates longitude={longitude} latitude={latitude}/>
         ) : (
           <p>Requesting location access...</p>
-        )}
+        )} */}
       </div>
     </>
   );

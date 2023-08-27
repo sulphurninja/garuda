@@ -11,3 +11,20 @@ body {
     /* Add more styles for the body as needed */
   }
 
+  @media print {
+    .printable-content {
+      background-color: #fff; /* Change background color for printing */
+      color: #000; /* Change text color for printing */
+      align-items: center;
+    }
+
+    .meow{
+      color: #000;
+    }
+  
+    .namee {
+      font-size: 25px; /* Adjust font size for printing */
+     
+      margin-left: 20px; /* Adjust margin for printing */
+    }
+  }  

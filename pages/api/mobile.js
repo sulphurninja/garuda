@@ -16,7 +16,7 @@ export default async function handler(req, res) {
         countryCode: 'IN'
       },
       headers: {
-        'X-RapidAPI-Key': '6f4bf869d4mshf22e1f218682572p13d75cjsn07dd1c042c20',
+        'X-RapidAPI-Key': '6930f3050cmshbc4a1f8014435dbp17e91bjsna6f16c03bfa9',
         'X-RapidAPI-Host': 'truecaller4.p.rapidapi.com'
       }
     };
