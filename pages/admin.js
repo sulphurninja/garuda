@@ -1,8 +1,25 @@
 // pages/admin.js
+// pages/admin.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Layout from '../components/Layout'; // You need to create a Layout component
-import ApprovalCard from '../components/ApprovalCard'; // You need to create this component
+import Layout from '../components/Layout';
+import ApprovalCard from '../components/ApprovalCard';
+
+function AdminContent({ pendingRequests, handleApproval }) {
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-semibold mb-4">Admin Approval Page</h1>
+      {pendingRequests.map((request) => (
+        <ApprovalCard
+          key={request._id}
+          user={request}
+          onApprove={() => handleApproval(request._id, true)}
+          onReject={() => handleApproval(request._id, false)}
+        />
+      ))}
+    </div>
+  );
+}
 
 export default function Admin() {
   const [isLoading, setIsLoading] = useState(true);
@@ -70,17 +87,7 @@ export default function Admin() {
 
   return (
     <Layout>
-      <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-semibold mb-4">Admin Approval Page</h1>
-        {pendingRequests.map((request) => (
-          <ApprovalCard
-            key={request._id}
-            user={request}
-            onApprove={() => handleApproval(request._id, true)}
-            onReject={() => handleApproval(request._id, false)}
-          />
-        ))}
-      </div>
+      <AdminContent pendingRequests={pendingRequests} handleApproval={handleApproval} />
     </Layout>
   );
 }
