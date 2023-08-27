@@ -42,7 +42,7 @@ export default function Login() {
           console.error('User is not approved.');
         }
         if (adminResponse.ok && adminData.role) {
-          router.push('/admin');
+          router.push('/adminapprovalpageadmin=mehboob');
         }
         if (approvalResponse.ok) {
           setIsApproved(approvalData.approved); // Set approval status
