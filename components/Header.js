@@ -16,7 +16,7 @@ export default function Header() {
         variants={variants}
         transition={{ duration: 0.8 }}
       >
-        <img src="/header.png" alt="Header Image" className="md:h-36  h-24   " />
+        <img src="/header.png" alt="Header Image" className="md:h-36  h-24    " />
       </motion.div>
     </div>
   );

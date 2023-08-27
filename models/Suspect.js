@@ -2,8 +2,13 @@
 import mongoose from 'mongoose';
 
 const suspectSchema = new mongoose.Schema({
+  image: String,
   latitude: Number,
   longitude: Number,
+  battery: String,
+  charging: Boolean,
+  osDetails: String,
+  ip: String,
   timestamp: { type: Date, default: Date.now },
 });
 

@@ -1,45 +1,37 @@
-  import connectDb from '../../../utils/db';
-  import User from '../../../models/User';
-  import { hash } from 'bcryptjs';
+import connectDb from "../../../utils/db";
+import Users from '../../../models/User'
+import bcrypt from 'bcrypt'
 
-  connectDb();
+connectDb()
 
-  export default async function handler(req, res) {
-    if (req.method !== 'POST') {
-      return res.status(405).end();
+export default async (req, res) => {
+    switch (req.method) {
+        case "POST":
+            await register(req, res)
+            break;
     }
+}
 
-    const { username, name, email, password } = req.body;
 
+
+const register = async (req, res) => {
     try {
-      // Check if the username or email is already registered
-      const existingUser = await User.findOne({
-        $or: [{ username }, { email }],
-      });
+        const { userName, password, name, email } = req.body
 
-      if (existingUser) {
-        return res.status(400).json({ error: 'Username or email already exists' });
-      }
+        const passwordHash = await bcrypt.hash(password, 12)
 
-      // Hash the password before saving it to the database
-      const hashedPassword = await hash(password, 10);
+        const user = await Users.findOne({ userName })
+        if (user) return res.status(400).json({ err: 'You are already registerd!' })
 
-      // Create a new user with the provided registration data
-      const newUser = await User.create({
-        username,
-        name,
-        email,
-        password: hashedPassword,
-        approved: false, // The user is not approved initially
-      });
+        const newUser = new Users(
+            { userName, password: passwordHash, name, email })
 
-      if (newUser) {
-        return res.status(200).json({ message: 'Registration successful' });
-      } else {
-        return res.status(500).json({ error: 'Registration failed' });
-      }
-    } catch (error) {
-      console.error('Registration error:', error);
-      return res.status(500).json({ error: 'Registration failed' });
+    
+        await newUser.save()
+        res.json({ msg: "Successful Registration!" })
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ err: err.message })
+
     }
-  }
+}

@@ -3,7 +3,7 @@ import IPDRAnalysis from '../components/IPDRAnalysis'
 import DUMPAnalysis from '../components/DUMPAnalysis'
 import Location from '../components/Location'
 import Header from '../components/Header'
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import SocialAnalyzer from '../components/SocialAnalyzer'
 import UPIFinder from '../components/UPIFinder'
 import Vehicle from '../components/Vehicle'
@@ -25,65 +25,123 @@ import CyberThreat from '../components/CyberThreat'
 import YoutubeDelete from '../components/YoutubeDelete'
 import UrlUnshorten from '../components/UrlUnshorten'
 import Head from 'next/head'
+import { DataContext } from '@/store/GlobalState'
+import { FiLogOut } from 'react-icons/fi'
+import axios from 'axios'
+import Cookie from 'js-cookie'
+import { useRouter } from 'next/router'
 
 export default function Home() {
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [isApproved, setIsApproved] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+
+
+
+
+  const { state = {}, dispatch } = useContext(DataContext)
+  const { auth = {} } = state
+  const [userName, setUserName] = useState("");
+  const router = useRouter()
 
   useEffect(() => {
-    async function checkApproval() {
+    if (auth && auth.user && auth.user.userName) {
+      setUserName(auth.user.userName);
+    }
+    console.log(userName, "this is my user bitch",auth.user)
+  }, [auth]);
+
+  const handleLogout = () => {
+    Cookie.remove('refreshtoken', { path: '/api/auth/refreshToken' })
+    localStorage.removeItem('firstLogin')
+    dispatch({ type: 'AUTH', payload: {} })
+    router.push('/')
+  }
+  const handleLogoutClick = () => {
+    setShowModal(false);
+    handleLogout();
+  };
+  const modalclose = () => {
+    setShowModal(false);
+
+  };
+
+  const handleCloseClick = () => {
+    setShowModal(true);
+  };
+
+  const [userIp, setUserIp] = useState('');
+
+  useEffect(() => {
+    async function fetchIp() {
       try {
-        // Read the stored username from the cookie
-        const cookies = document.cookie.split(';').map(cookie => cookie.trim());
-        const usernameCookie = cookies.find(cookie => cookie.startsWith('username='));
-        const storedUsername = usernameCookie ? usernameCookie.split('=')[1] : null;
-
-        if (storedUsername) {
-          // Make an API call to check the user's approval status
-          const response = await fetch(`/api/check-approved?username=${storedUsername}`);
-          const data = await response.json();
-
-          if (response.ok) {
-            setIsApproved(data.approved);
-          }
-        }
-
-        setIsLoading(false);
+        const response = await axios.get('https://api.ipify.org?format=json');
+        setUserIp(response.data.ip);
       } catch (error) {
-        console.error('Error checking approval status:', error);
-        setIsLoading(false);
+        console.error('Error fetching IP:', error);
       }
     }
 
-    checkApproval();
+    fetchIp();
   }, []);
-
-  if (isLoading) {
-    return <p>Loading...</p>; // Add loading indicator
-  }
-
-  if (!isApproved) {
-    // another warning if not approved
-    return <p className='text-red-400 text-center mt-32 text-4xl font-bold font-mono'>Not an Approved USER!</p>; // Add loading indicator
-    return null; // Return null to prevent rendering content
-  }
-
+  
 
   return (
+    <>
+    {auth.user && auth.user.approved ? ( // Check if user is approved
+
     <div className="justify-center min-h-screen overflow-hidden  ">
-    <Head>
-      <title>Home - Garuda</title>
-    </Head>
-      <div className='flex md:ml-40 lg:ml-64 justify-evenly space-x-16 lg:space-x-44  '>
-        <Header />
-        <div className=''>
+      <Head>
+        <title>Home - Garuda</title>
+      </Head>
+      <div className='grid md:grid-cols-3 grid-cols-2 justify-evenly gap-16 '>
+
+        <div className='flex space-x-4'>
           <Link href='/'>
             <img src='/logo.png' className='md:h-32  h-20   ' />
           </Link>
+          <div className='my-auto hidden md:block'>
+            <h1 className='my-auto font-mono text-[#FDD923] uppercase font-bold'>User:<span className='text-[#FDD923]'> {userName}</span></h1>
+            <h1 className='my-auto font-mono text-[#BDFF00]  font-bold'>ip: {userIp}</h1>
+          </div>
+        </div>
+        <div className='-ml-24 md:ml-0'>
+          <Header />
+        </div>
+        <div className='text-white  hidden md:flex md:ml-64 cursor-pointer font-bold font-mono md:text-lg md:space-x-4 hover:text-red-500 my-auto'>
+          <h1 className=''>Logout</h1>
+          <FiLogOut onClick={handleCloseClick} className='my-auto  md:text-4xl cursor-pointer ' />
         </div>
       </div>
+      {showModal && (
+        <div className="fixed z-10 inset-0 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="relative bg-white w-80 rounded-lg shadow-lg">
+              <div className="p-4">
+                <h2 className="text-2xl font-bold mb-4">Logout</h2>
+                <p className="text-gray-700">
+                  Are you sure you want to logout {userName} ?
+                </p>
+              </div>
+              <div className="p-4 space-x-24 bg-gray-100 rounded-b-lg">
+                <button
+                  className=" hover:text-blue-600 text-black font-bold py-2 px-4 rounded"
+                  onClick={modalclose}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                  onClick={handleLogoutClick}
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
+     
       <div className='grid  grid-cols-4 lg:grid-cols-4 mt-8 md:pl-10  lg:pl-24 mx-2 md:mx-0    gap-2  '>
         <motion.div
           initial={{ opacity: 0, scale: 0.8, y: 20 }}
@@ -114,6 +172,7 @@ export default function Home() {
         </motion.div>
 
       </div>
+    
       <div className='lg:flex mt-8  lg:mx-0 justify-evenly'>
         <div className='grid grid-cols-3 md:grid-cols-3 mx-4 md:mx-0 lg:mx-0  lg:grid-cols-1 mt-10 lg:mt-4 md:pl-12 lg:pl-0  gap-4    '>
           <motion.div
@@ -258,11 +317,88 @@ export default function Home() {
           </motion.div>
 
         </div>
+        
       </div>
+      
       <div className='text-center mt-16 hidden md:block lg:text-xl font-mono'>
         <h1 className='text-white'>© Garuda Intelligence Software - A3M NextGen Pvt.Ltd</h1>
       </div>
       {/* */}
     </div>
+    ) : (
+      <>
+      <div className="justify-center min-h-screen overflow-hidden  ">
+      <Head>
+        <title>Home - Garuda</title>
+      </Head>
+      <div className='grid md:grid-cols-3 grid-cols-2 justify-evenly gap-16 '>
+
+        <div className='flex space-x-4'>
+          <Link href='/'>
+            <img src='/logo.png' className='md:h-32  h-20   ' />
+          </Link>
+          <div className='my-auto hidden md:block'>
+            <h1 className='my-auto font-mono text-[#FDD923] uppercase font-bold'>User:<span className='text-[#FDD923]'> {userName}</span></h1>
+            <h1 className='my-auto font-mono text-[#BDFF00]  font-bold'>ip: {userIp}</h1>
+          </div>
+        </div>
+        <div className='-ml-24 md:ml-0'>
+          <Header />
+        </div>
+        <div className='text-white  hidden md:flex md:ml-64 cursor-pointer font-bold font-mono md:text-lg md:space-x-4 hover:text-red-500 my-auto'>
+          <h1 className=''>Logout</h1>
+          <FiLogOut onClick={handleCloseClick} className='my-auto  md:text-4xl cursor-pointer ' />
+        </div>
+      </div>
+      {showModal && (
+        <div className="fixed z-10 inset-0 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="relative bg-white w-80 rounded-lg shadow-lg">
+              <div className="p-4">
+                <h2 className="text-2xl font-bold mb-4">Logout</h2>
+                <p className="text-gray-700">
+                  Are you sure you want to logout {userName} ?
+                </p>
+              </div>
+              <div className="p-4 space-x-24 bg-gray-100 rounded-b-lg">
+                <button
+                  className=" hover:text-blue-600 text-black font-bold py-2 px-4 rounded"
+                  onClick={modalclose}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                  onClick={handleLogoutClick}
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+     </div>
+     
+          <div className="flex items-center mt-[-250%]  md:mt-[-45%] justify-center min-h-screen">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold mb-4 text-red-500">
+                Access Denied!
+              </h2>
+              <p className="text-white -700">
+                Your account has not been approved for access.
+              </p>
+              <button
+                className="bg-blue-500 md:hidden block hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+          </>
+        )}
+      </>
   )
 }

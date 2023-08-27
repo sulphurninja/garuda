@@ -1,76 +1,63 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import { DataContext } from '@/store/GlobalState';
+import Cookie from 'js-cookie'
+import { postData } from '@/utils/fetchData';
 
 export default function Login() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false); // Added isLoading state
-  const [isApproved, setIsApproved] = useState(true); // Default to true
+  const initialState = { userName: '', password: '' }
+  const [userData, setUserData] = useState(initialState)
+  const { userName, password } = userData
+  const { state = {}, dispatch } = useContext(DataContext)
+  const { auth = {} } = state
+  const router = useRouter()
 
 
+  const handleChangeInput = e => {
+    const { name, value } = e.target
+    setUserData({ ...userData, [name]: value })
+  }
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    const formData = {
-      username,
-      password,
-    };
+  const handleSubmit = async e => {
+    e.preventDefault()
 
-    try {
-      // Call the custom API route to handle login
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+    const res = await postData('auth/login', userData)
 
-      if (response.ok) {
-        document.cookie = `username=${username}`; // Store username in a cookie
-        // After successful login, check approval status and redirect if approved
-        const approvalResponse = await fetch(`/api/check-approved?username=${username}`);
-        const adminResponse = await fetch(`/api/check-admin?username=${username}`);
-        const approvalData = await approvalResponse.json();
-        const adminData = await adminResponse.json();
-      
-        if (approvalResponse.ok && approvalData.approved) {
-          router.push('/Home');
-        } else {
-          console.error('User is not approved.');
-        }
-        if (adminResponse.ok && adminData.role) {
-          router.push('/adminapprovalpageadmin=mehboob');
-        }
-        if (approvalResponse.ok) {
-          setIsApproved(approvalData.approved); // Set approval status
-          if (!approvalData.approved) {
-            console.error('User is not approved.');
-          }
-        }
-      } else {
-        const data = await response.json();
-        console.log(data);
-        console.error('Error during login:', data.error);
-      }
-      
-    } catch (error) {
-      console.error('Error during login:', error);
+    if (res.error) {
+      // If there is an error, do nothing and let the user try again
+      return
     }
-  };
+
+    dispatch({
+      type: 'AUTH',
+      payload: {
+        token: res.access_token,
+        user: res.user
+      }
+    })
+
+    Cookie.set('refreshtoken', res.refresh_token, {
+      path: '/api/auth/accessToken',
+      expires: 7
+    })
+
+    localStorage.setItem('firstLogin', 'true')
+  }
+
+  useEffect(() => {
+    if (Object.keys(auth).length !== 0) {
+      
+        router.push('/Home');
+      
+    }
+  }, [auth, router]);
  
   return (
     <div className="flex justify-center items-center h-screen">
     <Head>
       <title>Login - Garuda</title>
     </Head>
-    {!isApproved && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
-            <p className="text-white text-xl text-center">NOT APPROVED! Please wait for an approval!</p>
-          </div>
-        )}
       <div className=" p-8 bg-gray-100 rounded-lg shadow ">
         <div className='grid grid-cols-3'>
         <div></div>
@@ -79,14 +66,15 @@ export default function Login() {
         </div>
         </div>
         <h1 className="md:text-2xl text-sm text-center  font-mono font-bold uppercase mb-4">Garuda Intelligence Console</h1>
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="username" className="block text-sm font-medium text-gray-700">Username</label>
             <input
               type="text"
               id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={userName}
+              name='userName'
+              onChange={handleChangeInput}
               className="mt-1 p-2 w-full border rounded-md"
             />
           </div>
@@ -96,7 +84,8 @@ export default function Login() {
               type="password"
               id="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name='password'
+              onChange={handleChangeInput}
               className="mt-1 p-2 w-full border rounded-md"
             />
           </div>

@@ -9,42 +9,6 @@ export default function Admin() {
   const [isApproved, setIsApproved] = useState(false);
   const [pendingRequests, setPendingRequests] = useState([]);
 
-  // useEffect(() => {
-  //   async function checkApproval() {
-  //     try {
-  //       // Read the stored username from the cookie
-  //       const cookies = document.cookie.split(';').map(cookie => cookie.trim());
-  //       const usernameCookie = cookies.find(cookie => cookie.startsWith('username='));
-  //       const storedUsername = usernameCookie ? usernameCookie.split('=')[1] : null;
-
-  //       if (storedUsername) {
-  //         // Make an API call to check the user's approval status
-  //         const response = await fetch(`/api/check-admin?username=${storedUsername}`);
-  //         const data = await response.json();
-  //         if (response.ok) {
-  //           setIsApproved(data.role);
-  //         }
-  //       }
-  //       setIsLoading(false);
-  //     } catch (error) {
-  //       console.error('Error checking approval status:', error);
-  //       setIsLoading(false);
-  //     }
-  //   }
-  //   checkApproval();
-  // }, []);
-
-  // if (isLoading) {
-  //   return <p>Loading...</p>; // Add loading indicator
-  // }
-
-  // if (!isApproved) {
-  //   // another warning if not approved
-  //   return <p className='text-red-400 text-center mt-32 text-4xl font-bold font-mono'>Not an Approved ADMIN!</p>; // Add loading indicator
-  //   return null; // Return null to prevent rendering content
-  // }
-
-
 
   useEffect(() => {
     fetchPendingRequests();

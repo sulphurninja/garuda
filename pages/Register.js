@@ -1,43 +1,27 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import { DataContext } from '@/store/GlobalState';
+import {postData} from '@/utils/fetchData';
+import Link from 'next/link';
 
 export default function Register() {
-  const [username, setUsername] = useState('');
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const initialState = { userName: '', password: '', name: '', email: '' }
+  const [userData, setUserData] = useState(initialState)
+  const { userName, password, name, email } = userData
+  const { state, dispatch } = useContext(DataContext)
+  const { auth = {} } = state
   const router = useRouter();
-
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    const formData = {
-      username,
-      name,
-      email,
-      password,
-    };
-
-    try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        // Registration request successful, show a message or redirect
-        router.push('/registration-pending'); // Create this page for pending registration
-      } else {
-        const data = await response.json();
-        console.error('Error during registration:', data.error);
-      }
-    } catch (error) {
-      console.error('Error during registration:', error);
-    }
-  };
+  const handleChangeInput = e => {
+    const { name, value } = e.target
+    setUserData({ ...userData, [name]: value })
+  }
+  const handleSubmit = async e => {
+    e.preventDefault()
+    const res = await postData('/auth/register', userData)
+    console.log(res)
+    router.push('/registration-pending')
+  }
 
   return (
     <div className="flex justify-center items-center h-screen">
@@ -53,13 +37,14 @@ export default function Register() {
         </div>
         <h1 className="md:text-2xl text-sm text-center  font-mono font-bold uppercase mb-4">Garuda Intelligence Console</h1>
         <h2 className='font-mono text-center font-thin'>REGISTER</h2>
-        <form onSubmit={handleRegister}>
+        <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <input
               type="text"
               placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={userName}
+              name='userName'
+              onChange={handleChangeInput}
               className="mt-1 p-2 w-full border rounded-md"
             />
           </div>
@@ -67,8 +52,9 @@ export default function Register() {
             <input
               type="text"
               placeholder="Name"
+              name='name'
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={handleChangeInput}
               className="mt-1 p-2 w-full border rounded-md"
             />
           </div>
@@ -76,8 +62,9 @@ export default function Register() {
             <input
               type="email"
               placeholder="Email"
+              name='email'
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleChangeInput}
               className="mt-1 p-2 w-full border rounded-md"
             />
           </div>
@@ -86,11 +73,15 @@ export default function Register() {
               type="password"
               placeholder="Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name='password'
+              onChange={handleChangeInput}
               className="mt-1 p-2 w-full border rounded-md"
             />
           </div>
           <button type="submit" className="w-full bg-[#00A79D] text-white p-2 rounded-md">Register</button>
+          <Link href='/'>
+          <p className='text-center mt-4'>Existing User? <span className='text-[#00A79D] '>Login Here</span></p>
+          </Link>
         </form>
       </div>
     </div>

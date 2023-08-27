@@ -1,35 +1,46 @@
-import connectDb from '../../../utils/db';
-import User from '../../../models/User';
-import { compare } from 'bcryptjs';
 
-connectDb();
+import Users from '../../../models/User'
+import bcrypt from 'bcrypt'
+import { createAccessToken, createRefreshToken } from '../../../utils/generateToken'
+import connectDb from "../../../utils/db";
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).end();
-  }
+connectDb()
 
-  const { username, password } = req.body;
-
-  try {
-    // Find the user in the database based on the provided username
-    const user = await User.findOne({ username });
-
-    if (!user) {
-      return res.status(400).json({ error: 'Invalid credentials' });
+export default async (req, res) => {
+    switch (req.method) {
+        case "POST":
+            await login(req, res)
+            break;
     }
-    console.log(user)
-    // Compare the provided password with the hashed password stored in the database
-    const isPasswordMatch = await compare(password, user.password);
+}
 
-    if (isPasswordMatch) {
-      return res.status(201).json({success: true, message: 'Login successful', data: user.name });
-     
-    } else {
-      return res.status(400).json({ error: 'Invalid credentials' });
+const login = async (req, res) => {
+    try {
+        const { userName, password } = req.body
+
+        const passwordHash = await bcrypt.hash(password, 12)
+
+        const user = await Users.findOne({ userName })
+        if (!user) return res.status(400).json({ err: 'You are not registerd!' })
+        const isMatch = await bcrypt.compare(password, user.password)
+        if (!isMatch) return res.status(400).json({ err: 'Incorrect Password, Check again!' })
+
+        const access_token = createAccessToken({ id: user._id })
+        const refresh_token = createRefreshToken({ id: user._id })
+
+        res.json({
+            msg: "Login Successful!!",
+            refresh_token,
+            access_token,
+            user:{
+                userName: user.userName,
+                role: user.role,
+                approved: user.approved,
+                root: user.root,
+            }
+        })
+
+    } catch (err) {
+        return res.status(500).json({ err: err.message })
     }
-  } catch (error) {
-    console.error('Login error:', error);
-    return res.status(500).json({ error: 'Login failed' });
-  }
 }

@@ -1,22 +1,34 @@
-// pages/api/save-suspect.js
-import connectDb from '../../utils/db';
-import Suspect from '../../models/Suspect';
+import connectDb from '@/utils/db';
+import Suspect from '@/models/Suspect';
 
-connectDb();
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method Not Allowed' });
+    return res.status(405).end(); // Method Not Allowed
   }
 
-  const { latitude, longitude } = req.body;
+  const { imageUrl, latitude, longitude, userIp, batteryStatus, batteryCharging, osDetails } = req.body;
 
   try {
-    const newSuspect = new Suspect({ latitude, longitude });
-    await newSuspect.save();
-    res.status(201).json({ message: 'Suspect saved successfully' });
+      await connectDb();
+       
+    // Create a new Suspect document
+    const newSuspect = new Suspect({
+      image: imageUrl, // Cloudinary image URL
+      latitude,
+      longitude,
+      battery: batteryStatus, // You can set this as needed
+      ip: userIp, // Set the actual IP address here
+      charging:batteryCharging,
+      osDetails,
+    });
+
+    // Save the suspect to the database
+    const savedSuspect = await newSuspect.save();
+
+    res.status(200).json(savedSuspect);
   } catch (error) {
     console.error('Error saving suspect:', error);
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: 'Error saving suspect' });
   }
 }
