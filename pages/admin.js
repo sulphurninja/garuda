@@ -50,6 +50,10 @@ export default function Admin() {
     }
     checkApproval();
   }, []);
+  
+  useEffect(() => {
+    fetchPendingRequests();
+  }, []);
 
   if (isLoading) {
     return <p>Loading...</p>; // Add loading indicator
@@ -63,9 +67,7 @@ export default function Admin() {
 
 
 
-  useEffect(() => {
-    fetchPendingRequests();
-  }, []);
+  
 
   const fetchPendingRequests = async () => {
     try {
