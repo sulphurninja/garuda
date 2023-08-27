@@ -7,6 +7,7 @@ import ApprovalCard from '../components/ApprovalCard'; // You need to create thi
 export default function Admin() {
   const [isLoading, setIsLoading] = useState(true);
   const [isApproved, setIsApproved] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState([]);
 
   useEffect(() => {
     async function checkApproval() {
@@ -43,7 +44,7 @@ export default function Admin() {
     return null; // Return null to prevent rendering content
   }
 
-  const [pendingRequests, setPendingRequests] = useState([]);
+
 
   useEffect(() => {
     fetchPendingRequests();
