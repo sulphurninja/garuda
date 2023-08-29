@@ -19,6 +19,7 @@ export default async (req, res) => {
             user:{
                 userName: user.userName,
                 role: user.role,
+                approved: user.approved,
                 root: user.root
             }
         })

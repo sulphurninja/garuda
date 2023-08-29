@@ -41,14 +41,23 @@ export default function Home() {
   const { state = {}, dispatch } = useContext(DataContext)
   const { auth = {} } = state
   const [userName, setUserName] = useState("");
+  const [isApproved, setIsApproved] = useState(false);
   const router = useRouter()
 
   useEffect(() => {
     if (auth && auth.user && auth.user.userName) {
       setUserName(auth.user.userName);
     }
-    console.log(userName, "this is my user bitch",auth.user)
+
+    // Set isApproved based on auth.user.approved
+    if (auth && auth.user && auth.user.approved) {
+      setIsApproved(true);
+    }
+
+    console.log(userName, "this is my user ", auth.user);
   }, [auth]);
+
+ 
 
   const handleLogout = () => {
     Cookie.remove('refreshtoken', { path: '/api/auth/refreshToken' })

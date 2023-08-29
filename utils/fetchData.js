@@ -1,4 +1,4 @@
-const baseUrl = 'https://cdrgaruda.vercel.app'
+const baseUrl = 'http://localhost:7777'
 
 export const getData = async (url, token) =>{
     const res = await fetch(`${baseUrl}/api/${url}`, {
