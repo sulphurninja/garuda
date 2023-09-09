@@ -8,6 +8,7 @@ const suspectSchema = new mongoose.Schema({
   battery: String,
   charging: Boolean,
   osDetails: String,
+  userName : String,
   ip: String,
   timestamp: { type: Date, default: Date.now },
 });

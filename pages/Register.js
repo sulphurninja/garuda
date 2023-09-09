@@ -12,6 +12,7 @@ export default function Register() {
   const { state, dispatch } = useContext(DataContext)
   const { auth = {} } = state
   const router = useRouter();
+  
   const handleChangeInput = e => {
     const { name, value } = e.target
     setUserData({ ...userData, [name]: value })
